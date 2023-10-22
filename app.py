@@ -65,5 +65,24 @@ def index():
     item = result["data"]["items"][0] if "data" in result and "items" in result["data"] and result["data"]["items"] else None
     return render_template("index.html", item=item)
 
+@app.route('/search', methods=['POST'])
+def search():
+    item_name = request.form.get('item_name', '')  # Retrieving the item name from the POST request.
+    
+    item_query = f"""
+    query {{
+        items(name: "{item_name}") {{
+            # rest of the fields
+        }}
+    }}
+    """
+  
+    result = run_query(item_query)
+    if "error" in result:
+        return jsonify(error=result["error"])
+    
+    item = result["data"]["items"][0] if result["data"]["items"] else None
+    return jsonify(item)
+
 if __name__ == "__main__":
     app.run(debug=True)
