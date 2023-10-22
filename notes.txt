@@ -1,0 +1,11 @@
+# Virtual Environment
+
+python -m venv widmk_venv
+
+# Activate Environment
+
+widmk_venv\Scripts\activate
+
+# Install Packages
+
+pip install Flask gunicorn
