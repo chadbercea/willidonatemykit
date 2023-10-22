@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIDMYK</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Random Item
+                </div>
+                
+                <div class="card-body">
+    {% if item %}
+        <h5 class="card-title">{{ item.name }}</h5>
+        <img src="{{ item.gridImageLink }}" alt="{{ item.name }}">
+        <p><strong>Short Name:</strong> {{ item.shortName }}</p>
+        <p><strong>Base Price:</strong> {{ item.basePrice }}</p>
+        <p><strong>Avg 24h Price:</strong> {{ item.avg24hPrice }}</p>
+        <p><strong>Change in Last 48h:</strong> {{ item.changeLast48h }}</p>
+        <p><strong>Change Percentage in Last 48h:</strong> {{ item.changeLast48hPercent }}%</p>
+
+        <h6>Selling For:</h6>
+        <ul>
+        {% for sell in item.sellFor %}
+            <li><strong>Price:</strong> {{ sell.price }}</li>
+            <li><strong>Currency:</strong> {{ sell.currency }}</li>
+            <li><strong>Price in RUB:</strong> {{ sell.priceRUB }}</li>
+            <li><strong>Source:</strong> {{ sell.source }}</li>
+        {% endfor %}
+        </ul>
+
+        <h6>Buying For:</h6>
+        <ul>
+        {% for buy in item.buyFor %}
+            <li><strong>Price:</strong> {{ buy.price }}</li>
+            <li><strong>Currency:</strong> {{ buy.currency }}</li>
+            <li><strong>Price in RUB:</strong> {{ buy.priceRUB }}</li>
+            <li><strong>Source:</strong> {{ buy.source }}</li>
+        {% endfor %}
+        </ul>
+
+        <p><strong>Category ID:</strong> {{ item.category.id }}</p>
+
+        <a href="{{ item.wikiLink }}" target="_blank">View on Wiki</a>
+    {% elif error %}
+        <h5 class="card-title">{{ error }}</h5>
+    {% else %}
+        <h5 class="card-title">No item found.</h5>
+    {% endif %}
+</div>
+
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/base.js') }}"></script>
+</body>
+</html>

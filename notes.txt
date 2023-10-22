@@ -1,3 +1,4 @@
+﻿
 # Virtual Environment
 
 python -m venv widmk_venv
@@ -9,3 +10,25 @@ widmk_venv\Scripts\activate
 # Install Packages
 
 pip install Flask gunicorn
+
+-------------------------------------------------------
+
+# Grab all current reqs and put them in the txt file
+
+pip freeze > requirements.txt
+
+-------------------------------------------------------
+
+# Dir Structure in csharp
+
+├── app.py
+├── templates/
+│   └── index.html
+└── static/
+    ├── css/
+    │   └── base.css
+    └── js/
+        └── base.js
+
+-------------------------------------------------------
+
