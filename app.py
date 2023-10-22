@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, requests
 from flask_caching import Cache
 
 app = Flask(__name__)
