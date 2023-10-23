@@ -28,9 +28,12 @@ def run_query(query):
 def index():
     return render_template("index.html")
 
+# ... (rest of your imports and app initialization)
+
 @app.route('/search', methods=['POST'])
 def search():
-    item_name = request.form.get('item_name', '').strip()
+    data = request.json
+    item_name = data.get('searchTerm', '').strip()
 
     if not item_name:  # check if item name is empty
         return jsonify(error="Item name is required!")
@@ -70,8 +73,8 @@ def search():
     if "error" in result:
         return jsonify(error=result["error"])
 
-    item = result["data"]["items"][0] if "data" in result and "items" in result["data"] and result["data"]["items"] else None
-    return jsonify(item)
+    items = result.get("data", {}).get("items", [])
+    return jsonify(items=items)
 
 if __name__ == "__main__":
     app.run(debug=True)

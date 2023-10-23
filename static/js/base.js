@@ -1,47 +1,137 @@
-function searchItem() {
-    const searchValue = document.getElementById("searchInput").value;
+﻿function searchItem() {
+    let searchTerm = document.getElementById("searchTerm").value;
 
     fetch('/search', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         },
-        body: `item_name=${searchValue}`
+        body: JSON.stringify({ searchTerm: searchTerm }),
     })
     .then(response => response.json())
     .then(data => {
-        document.getElementById("itemName").textContent = data.name || "Error occurred!";
-        document.getElementById("itemImage").src = data.gridImageLink;
-        document.getElementById("itemImage").alt = data.name;
-        document.getElementById("itemShortName").textContent = data.shortName;
-        document.getElementById("itemBasePrice").textContent = data.basePrice;
-        document.getElementById("itemAvg24hPrice").textContent = data.avg24hPrice;
-        document.getElementById("itemChangeLast48h").textContent = data.changeLast48h;
-        document.getElementById("itemChangeLast48hPercent").textContent = data.changeLast48hPercent;
-        document.getElementById("itemCategoryID").textContent = data.category?.id;
+        const container = document.getElementById("cardsContainer");
+        container.innerHTML = ''; // clear any existing cards
 
-        // Handle sellFor and buyFor arrays
-        const sellList = document.getElementById("sellList");
-        sellList.innerHTML = '';
-        data.sellFor.forEach(sell => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.innerHTML = `<strong>Price:</strong> ${sell.price}, <strong>Currency:</strong> ${sell.currency}, <strong>Price in RUB:</strong> ${sell.priceRUB}, <strong>Source:</strong> ${sell.source}`;
-            sellList.appendChild(li);
+        const items = data.items;
+        if (!items || items.length === 0) {
+            container.innerHTML = '<div class="col-12">No items found.</div>';
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const cardCol = document.createElement('div');
+            cardCol.className = 'col-12 mb-4';
+
+            const card = document.createElement('div');
+            card.className = 'card bg-dark text-white';
+
+            if (item.gridImageLink) {
+                const cardImageContainer = document.createElement('div');
+                cardImageContainer.className = 'card-img-top text-center p-3'; 
+
+                const cardImage = document.createElement('img');
+                cardImage.src = item.gridImageLink;
+                cardImage.alt = "Item Image";
+                cardImage.className = "img-fluid";
+
+                cardImageContainer.appendChild(cardImage);
+                card.appendChild(cardImageContainer);
+            }
+
+            const navPills = document.createElement('ul');
+            navPills.className = 'nav nav-pills nav-pills-custom mb-2';
+
+            const tabContent = document.createElement('div');
+            tabContent.className = 'tab-content pt-2';
+
+            createCategory(card, navPills, tabContent, `info-${index}`, 'Info', [
+                { key: 'name', label: 'Name' },
+                { key: 'shortName', label: 'ShortName' },
+                { key: 'basePrice', label: 'Base Price' }
+            ], item);
+
+            createCategory(card, navPills, tabContent, `price-${index}`, 'Price', [
+                { key: 'basePrice', label: 'Base Price' },
+                { key: 'avg24hPrice', label: 'Avg 24h Price' },
+                { key: 'changeLast48h', label: 'Change Last 48h' },
+                { key: 'changeLast48hPercent', label: 'Change Last 48h Percent' }
+            ], item);
+
+            createCategory(card, navPills, tabContent, `market-${index}`, 'Market', [
+                { key: 'sellFor', label: 'Sell For' },
+                { key: 'buyFor', label: 'Buy For' },
+                { key: 'category', label: 'Category ID', subKey: 'id' }
+            ], item);
+
+            card.appendChild(navPills);
+            card.appendChild(tabContent);
+            cardCol.appendChild(card);
+            container.appendChild(cardCol);
         });
-
-        const buyList = document.getElementById("buyList");
-        buyList.innerHTML = '';
-        data.buyFor.forEach(buy => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.innerHTML = `<strong>Price:</strong> ${buy.price}, <strong>Currency:</strong> ${buy.currency}, <strong>Price in RUB:</strong> ${buy.priceRUB}, <strong>Source:</strong> ${buy.source}`;
-            buyList.appendChild(li);
-        });
-
-        document.getElementById("wikiLink").href = data.wikiLink;
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error("Error in fetching or processing data:", error);
     });
+}
+
+function createCategory(card, navPills, tabContent, uniqueId, title, fields, item) {
+    const pill = document.createElement('li');
+    pill.className = 'nav-item';
+    
+    const pillLink = document.createElement('a');
+    pillLink.className = 'nav-link';
+    pillLink.href = `#${uniqueId}`;
+    pillLink.dataset.toggle = 'pill';
+    pillLink.textContent = title;
+    pill.appendChild(pillLink);
+
+    if (navPills.children.length === 0) {
+        pillLink.classList.add('active');
+    }
+
+    navPills.appendChild(pill);
+
+    const tabPane = document.createElement('div');
+    tabPane.className = 'tab-pane fade p-3';
+
+    if (navPills.children.length === 1) {
+        tabPane.classList.add('show', 'active');
+    }
+
+    tabPane.id = uniqueId;
+
+    const table = document.createElement('table');
+    table.className = 'table table-dark table-striped table-bordered';
+
+    fields.forEach(field => {
+        if (item[field.key]) {
+            const row = document.createElement('tr');
+
+            const labelCell = document.createElement('td');
+            labelCell.textContent = field.label;
+            row.appendChild(labelCell);
+
+            const valueCell = document.createElement('td');
+
+            if (field.key === "sellFor" || field.key === "buyFor") {
+                let sortedList = item[field.key].sort((a, b) => b.priceRUB - a.priceRUB);
+                sortedList.slice(0, 3).forEach(entry => {
+                    const div = document.createElement('div');
+                    div.innerHTML = entry.source + ': ' + entry.priceRUB + ' ₽';
+                    valueCell.appendChild(div);
+                });
+            } else if (field.subKey) {
+                valueCell.textContent = item[field.key][field.subKey];
+            } else {
+                valueCell.textContent = item[field.key];
+            }
+
+            row.appendChild(valueCell);
+            table.appendChild(row);
+        }
+    });
+
+    tabPane.appendChild(table);
+    tabContent.appendChild(tabPane);
 }

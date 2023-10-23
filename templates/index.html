@@ -10,48 +10,44 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 </head>
 
-<body>
+<body class="bg-dark text-white">
 
 <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
+    <div class="row">
+        <!-- Search card on the left -->
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark text-white">
                 <div class="card-header text-center">
                     <h1>Search for a Tarkov Item</h1>
                     <div class="input-group mb-3">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Search for an item...">
+                        <input type="text" id="searchTerm" class="form-control" placeholder="Search for an item...">
                         <div class="input-group-append">
                             <button onclick="searchItem()" class="btn btn-primary">Search</button>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="card-body">
-                    <h5 class="card-title" id="itemName">Enter the name of the item you wish to search for.</h5>
-                    <img src="" id="itemImage" class="img-fluid" alt="">
-                    <p><strong>Short Name:</strong> <span id="itemShortName"></span></p>
-                    <p><strong>Base Price:</strong> <span id="itemBasePrice"></span></p>
-                    <p><strong>Avg 24h Price:</strong> <span id="itemAvg24hPrice"></span></p>
-                    <p><strong>Change in Last 48h:</strong> <span id="itemChangeLast48h"></span></p>
-                    <p><strong>Change Percentage in Last 48h:</strong> <span id="itemChangeLast48hPercent"></span>%</p>
+        <!-- List of cards on the right -->
+        <div class="col-md-6 bg-dark text-white">
+            <!-- Nav pills -->
+            <ul class="nav nav-pills mb-3" id="categoryPills">
+                <!-- Nav pills will be dynamically populated here -->
+            </ul>
 
-                    <h6>Selling For:</h6>
-                    <ul class="list-group list-group-flush" id="sellList"></ul>
-
-                    <h6>Buying For:</h6>
-                    <ul class="list-group list-group-flush" id="buyList"></ul>
-
-                    <p><strong>Category ID:</strong> <span id="itemCategoryID"></span></p>
-
-                    <a href="#" id="wikiLink" class="btn btn-info btn-block" target="_blank">View on Wiki</a>
-                </div>
-
+            <div class="row" id="cardsContainer">
+                <!-- Cards will be appended here -->
             </div>
         </div>
     </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/base.js') }}"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 
 </html>
