@@ -1,6 +1,5 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import requests
-import random
 import logging
 
 app = Flask(__name__)
@@ -14,10 +13,8 @@ def run_query(query):
     
     if response.status_code == 200:
         data = response.json()
-        # Log the response data for debugging purposes
         app.logger.debug(data)
         
-        # Check if the response contains any errors
         if "errors" in data:
             return {"error": data["errors"][0]["message"]}
         
@@ -29,59 +26,51 @@ def run_query(query):
 
 @app.route('/')
 def index():
-    item_query = """
-    query {
-        items(name: "Multitool") {
+    return render_template("index.html")
+
+@app.route('/search', methods=['POST'])
+def search():
+    item_name = request.form.get('item_name', '').strip()
+
+    if not item_name:  # check if item name is empty
+        return jsonify(error="Item name is required!")
+
+    item_query = f"""
+    query {{
+        items(name: "{item_name}") {{
             name
             shortName
             basePrice
             avg24hPrice
             changeLast48h
             changeLast48hPercent
-            sellFor {
+            sellFor {{
                 price
                 currency
                 priceRUB
                 source
-            }
-            buyFor {
+            }}
+            buyFor {{
                 price
                 currency
                 priceRUB
                 source
-            }
-            category {
+            }}
+            category {{
                 id
-            }
+            }}
             gridImageLink              
-        }
-    }
-    """
-  
-    result = run_query(item_query)
-    if "error" in result:
-        return render_template("index.html", error=result["error"])
-    
-    item = result["data"]["items"][0] if "data" in result and "items" in result["data"] and result["data"]["items"] else None
-    return render_template("index.html", item=item)
-
-@app.route('/search', methods=['POST'])
-def search():
-    item_name = request.form.get('item_name', '')  # Retrieving the item name from the POST request.
-    
-    item_query = f"""
-    query {{
-        items(name: "{item_name}") {{
-            # rest of the fields
         }}
     }}
     """
-  
+    
+    app.logger.debug(f"Sending query:\n{item_query}")
+
     result = run_query(item_query)
     if "error" in result:
         return jsonify(error=result["error"])
-    
-    item = result["data"]["items"][0] if result["data"]["items"] else None
+
+    item = result["data"]["items"][0] if "data" in result and "items" in result["data"] and result["data"]["items"] else None
     return jsonify(item)
 
 if __name__ == "__main__":
