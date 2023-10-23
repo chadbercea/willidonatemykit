@@ -1,4 +1,4 @@
-# Tarkov Financial Tools
+# Tarkov Financial Tools MVP - www.willidonatemykit.com
 
 ## Description
 
@@ -32,6 +32,11 @@ This project aims to assist players of the game "Escape from Tarkov" in making i
 
 - Integrate more data sources to provide comprehensive financial details for each item.
 - Implement user account systems for personalized tracking and notifications.
+
+## Resources
+
+- https://api.tarkov.dev/graphql
+- https://github.com/the-hideout/tarkov-api
 
 ## Contributions
 
