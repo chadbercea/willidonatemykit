@@ -5,6 +5,7 @@ python -m venv widmk_venv
 
 # Activate Environment
 
+source widmk_venv/bin/activate
 widmk_venv\Scripts\activate
 
 # Install Packages
