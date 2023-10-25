@@ -1,0 +1,89 @@
+# This pulls 5 helmets to be selected from bootstrap dropdown
+
+query {
+  items(name: "Helmet" limit: 5) {
+    shortName
+    basePrice
+    inspectImageLink
+  }
+}
+
+# This pulls 5 Armored Rigs to be selected
+
+query {
+  items(name: "Plate" limit: 5) {
+    shortName
+    basePrice
+    inspectImageLink
+  }
+}
+
+# This pulls 5 backpacks
+
+query {
+  items(name: "backpack" limit: 5) {
+    shortName
+    basePrice
+    inspectImageLink
+  }
+}
+
+# This pulls 5 M4A1 rifles to be selected from bootstrap dropdown
+
+query {
+  items(name: "M4A1", limit: 5) {
+    shortName
+    basePrice
+    inspectImageLink
+  }
+}
+
+# This pulls 5 ammo types Quality
+
+query {
+  ammo(limit: 5) {
+    item {
+      shortName
+    }
+    damage
+    caliber 
+    inspectImageLink
+  }
+}
+
+# This pulls 5 maps 
+
+query {
+  maps(limit: 5) {
+    name
+    enemies
+    players
+    inspectImageLink
+  }
+}
+
+# Player level selection via dropdown
+
+query {
+  playerLevels {
+    level
+    exp
+    inspectImageLink
+  }
+}
+
+---
+
+Algorithm:
+Assign weights to each factor. For instance:
+Gear Quality: 0.3
+Ammo Quality: 0.2
+Map Knowledge: 0.1
+Trading Prowess: 0.1
+For each factor, normalize scores to a range of 0-10. For instance:
+Gear Quality: If basePrice > X, score = 10, else calculate based on price range.
+Ammo Quality: If damage > Y, score = 10, else calculate based on damage range.
+Multiply each factor's score by its weight, and sum up all weighted scores to get a final survivability score out of 10.
+The actual values, such as X or Y above, can be determined based on data trends or set as per desired difficulty.
+
+Finally, turn the value into a percentage
