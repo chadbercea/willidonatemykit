@@ -44,9 +44,12 @@ query {
   ammo(limit: 5) {
     item {
       shortName
+      basePrice
+      inspectImageLink
     }
-    damage
     caliber
+    damage
+    armorDamage
   }
 }
 """

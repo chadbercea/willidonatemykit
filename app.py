@@ -43,7 +43,7 @@ def index():
         "armored_rigs": QUERY_PLATES,
         "backpack": QUERY_BACKPACKS,
         "M4A1": QUERY_M4A1,
-        "ammo": QUERY_AMMO,
+        "ammo": QUERY_AMMO,  # This query does not follow the same structure as others.
         "maps": QUERY_MAPS,
         "player_levels": QUERY_PLAYER_LEVELS
     }
@@ -51,9 +51,18 @@ def index():
     context = {}
     for key, query in queries.items():
         response = run_query(query)
-        raw_data = response.get('data', {}).get('items', [])
-        context[key] = standardize_data(raw_data)
+        if response:
+            if key == "ammo":  # Specific parsing for ammo data.
+                raw_data = response.get('data', {}).get('ammo', [])
+            else:
+                raw_data = response.get('data', {}).get('items', [])
+            context[key] = standardize_data(raw_data)
+        else:
+            context[key] = []
+            
+    app.logger.debug("Full Context Data: %s", context)
     return render_template("index.html", context=context)
+
 
 @app.route('/calculate_score', methods=['POST'])
 def calculate_score():
