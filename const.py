@@ -57,9 +57,22 @@ query {
 QUERY_MAPS = """
 query {
   maps(limit: 5) {
+    id
     name
+    normalizedName
+    wiki
+    description
     enemies
+    raidDuration
     players
+    bosses {
+      name
+      spawnChance
+    }
+    accessKeys {
+        shortName
+        wikiLink
+    }
   }
 }
 """

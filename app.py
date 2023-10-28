@@ -15,6 +15,7 @@ API_URL = "https://api.tarkov.dev/graphql"
 def run_query(query):
     headers = {"Content-Type": "application/json"}
     response = requests.post(API_URL, headers=headers, json={'query': query})
+    app.logger.debug("API response: %s", response.text)  # Log the response text
     if response.status_code == 200:
         return response.json()
     else:
@@ -32,37 +33,44 @@ def standardize_data(data):
     for item in data:
         item_data = {}
         for key, value in item.items():
-            # Process the data as required; this is a basic example
             item_data[key] = value
         standardized.append(item_data)
     return standardized
 @app.route('/')
+
 def index():
     queries = {
         "helmets": QUERY_HELMETS,
         "armored_rigs": QUERY_PLATES,
         "backpack": QUERY_BACKPACKS,
         "M4A1": QUERY_M4A1,
-        "ammo": QUERY_AMMO,  # This query does not follow the same structure as others.
+        "ammo": QUERY_AMMO,  
         "maps": QUERY_MAPS,
         "player_levels": QUERY_PLAYER_LEVELS
     }
 
-    context = {}
+    context = {"successFlags": {}}
     for key, query in queries.items():
         response = run_query(query)
         if response:
-            if key == "ammo":  # Specific parsing for ammo data.
+            if key == "ammo":
                 raw_data = response.get('data', {}).get('ammo', [])
+            elif key == "maps":
+                raw_data = response.get('data', {}).get('maps', [])
+                context["successFlags"]["maps"] = bool(raw_data)
+            elif key == "player_levels":
+                # Refactored to correctly access 'playerLevels' from the response
+                raw_data = response.get('data', {}).get('playerLevels', [])
+                context["successFlags"]["player_levels"] = bool(raw_data)
             else:
                 raw_data = response.get('data', {}).get('items', [])
             context[key] = standardize_data(raw_data)
         else:
             context[key] = []
-            
+            context["successFlags"][key] = False  # Set success flag as False when no data is returned
+
     app.logger.debug("Full Context Data: %s", context)
     return render_template("index.html", context=context)
-
 
 @app.route('/calculate_score', methods=['POST'])
 def calculate_score():

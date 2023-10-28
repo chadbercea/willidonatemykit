@@ -43,32 +43,71 @@
         {% endfor %}
       </div>
       
-      <div class="container mt-4">
-        <div class="row">
-          <h2>Ammo</h2>
-          <!-- Debug: Dump ammo data -->
-          <pre>{{ context.ammo | tojson }}</pre>
-      
-          {% for ammo in context.ammo %}
-          <div class="card bg-dark text-white" style="width: 18rem;">
-            <img src="{{ ammo.item.inspectImageLink }}" class="card-img-top" alt="{{ ammo.item.shortName }}">
-            <div class="card-body">
-              <h5 class="card-title">{{ ammo.item.shortName }}</h5>
-              <p class="card-text">
-                Caliber: {{ ammo.caliber }}<br>
-                Damage: {{ ammo.damage }}<br>
-                Armor Damage: {{ ammo.armorDamage }}<br>
-              </p>
-            </div>
-          </div>
-        {% endfor %}
+    <div class="container mt-4">
+    <div class="row">
+        <h2>Ammo</h2>
+        {% for ammo in context.ammo %}
+        <div class="card bg-dark text-white" style="width: 18rem;">
+        <img src="{{ ammo.item.inspectImageLink }}" class="card-img-top" alt="{{ ammo.item.shortName }}">
+        <div class="card-body">
+            <h5 class="card-title">{{ ammo.item.shortName }}</h5>
+            <p class="card-text">
+            Caliber: {{ ammo.caliber }}<br>
+            Damage: {{ ammo.damage }}<br>
+            Armor Damage: {{ ammo.armorDamage }}<br>
+            </p>
         </div>
+        </div>
+    {% endfor %}
+    </div>
       </div>
       
-    
-    
-    
-    
+    <div class="container mt-4">
+        <div class="row">
+        <h2>Maps</h2>
+        {% for map in context.maps %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card bg-dark text-white" style="width: 18rem;">
+            <!-- Dynamic image loading -->
+            {% if map.image_link %}
+                <img src="{{ map.image_link }}" class="card-img-top" alt="{{ map.name }}"> 
+            {% endif %}
+
+            <div class="card-body">
+                <h5 class="card-title">{{ map.name }}</h5>
+          
+                <!-- Enemies Section -->
+                <div class="card-text">
+                <strong>Enemies:</strong>
+                {% if map.enemies %}
+                    <ul>
+                    {% for enemy in map.enemies %}
+                        <li>{{ enemy }}</li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <span>No enemies listed.</span>
+                {% endif %}
+                </div>
+
+                <!-- Players Section -->
+                <p class="card-text"><strong>Players:</strong> {{ map.players or 'Not specified' }}</p>
+            </div>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- ... other content ... -->
+
+    <select id="playerLevelSelect" class="form-select">
+        {% for level_data in context.player_levels %}
+        <option value="{{ level_data.level }}">Level {{ level_data.level }} ({{ level_data.exp }} EXP)</option>
+        {% endfor %}
+    </select>
+
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <!-- Optional Bootstrap JavaScript along with Popper.js -->
@@ -76,5 +115,18 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
     <!-- Your script -->
     <script src="{{ url_for('static', filename='js/base.js') }}"></script>
+    <script>
+        window.onload = function() {
+            // Replace `context` with the actual variable passed from Flask if it's different.
+            let successFlags = {{ context.successFlags | tojson }};
+        
+            if (successFlags.maps) {
+                console.log("All queries returned valid data");
+            } else {
+                console.log("Not all queries returned valid data");
+            }
+        };
+    </script>
+
 </body>
 </html>
