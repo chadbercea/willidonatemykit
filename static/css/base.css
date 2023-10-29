@@ -1,32 +1,53 @@
-a {
-    color: #adb5bd; /* Bootstrap's gray-400 for a lighter gray */
+.card-description {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    cursor: pointer;
 }
 
-a:hover {
-    color: #f8f9fa; /* Bootstrap's white for hover */
-}
-.nav-pills-custom {
-    padding-left: 15px; /* This is the typical padding for table cells in Bootstrap */
-}
-
-.img-fluid {
-    display: block;
-    margin: auto;
+.horizontal-scroll {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
-.item-image-container {
+.horizontal-scroll .card {
+  flex: 0 0 auto;
+}
+
+.card-text {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Show ellipsis after 2 lines */
+  -webkit-box-orient: vertical;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  white-space: normal; /* Change from nowrap to normal */
+  max-height: 4.4em; /* Assuming line height of 1.1em, adjust as necessary */
+}
+
+/* Optional: CSS for 'More/Less' link for better visibility and positioning */
+.more-less {
+  color: #ffffff; /* Bootstrap primary color, can change based on your theme */
+  cursor: pointer;
+}
+
+.list-unstyled {
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+
+.enemies-list {
     display: flex;
-    align-items: center; /* Vertically center the image */
-    justify-content: center; /* Horizontally center the image */
-    padding: 15px;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 
-.item-details {
-    flex: 1;
-    padding: 15px;
-    overflow-x: auto; /* add scroll for overflow content */
+.enemy {
+    background-color: #191919;
+    margin-right: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
 }
 
-.d-flex {
-    flex-wrap: nowrap; /* this ensures the flex container doesn't wrap its content */
-}
