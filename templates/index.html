@@ -11,102 +11,132 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 </head>
 <body class="bg-dark text-white">
-
-    <!-- This is working 
-        <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-sm-12">
-                {% for category, items in context.items() %}
-                    <h3>{{ category | capitalize }}</h3>
-                    <pre>{{ items | tojson(indent=2) }}</pre>
-                {% endfor %}
-            </div>
-        </div> 
-    </div> -->
-    
-    <div class="container">
-        {% for category in ['helmets', 'armored_rigs', 'backpack', 'M4A1'] %}
-          <div class="row my-3">
-            <h2>{{ category.capitalize() }}</h2>
-            {% for item in context[category][:4] %}
-              <div class="col-md-3">
-                <div class="card bg-dark text-white" style="width: 18rem;">
-                  <img src="{{ item.inspectImageLink }}" class="card-img-top" alt="{{ item.shortName }}">
-                  <div class="card-body">
-                    <h5 class="card-title">{{ item.shortName }}</h5>
-                    <p class="card-text">Price: {{ item.basePrice }}</p>
-                  </div>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        {% endfor %}
-      </div>
-      
-    <div class="container mt-4">
-    <div class="row">
-        <h2>Ammo</h2>
-        {% for ammo in context.ammo %}
-        <div class="card bg-dark text-white" style="width: 18rem;">
-        <img src="{{ ammo.item.inspectImageLink }}" class="card-img-top" alt="{{ ammo.item.shortName }}">
-        <div class="card-body">
-            <h5 class="card-title">{{ ammo.item.shortName }}</h5>
-            <p class="card-text">
-            Caliber: {{ ammo.caliber }}<br>
-            Damage: {{ ammo.damage }}<br>
-            Armor Damage: {{ ammo.armorDamage }}<br>
-            </p>
-        </div>
-        </div>
-    {% endfor %}
-    </div>
-      </div>
-      
-    <div class="container mt-4">
+    <div class="container-fluid wrapper">
         <div class="row">
-        <h2>Maps</h2>
-        {% for map in context.maps %}
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card bg-dark text-white" style="width: 18rem;">
-            <!-- Dynamic image loading -->
-            {% if map.image_link %}
-                <img src="{{ map.image_link }}" class="card-img-top" alt="{{ map.name }}"> 
-            {% endif %}
+            <div class="col-sm-12">
 
-            <div class="card-body">
-                <h5 class="card-title">{{ map.name }}</h5>
-          
-                <!-- Enemies Section -->
-                <div class="card-text">
-                <strong>Enemies:</strong>
-                {% if map.enemies %}
-                    <ul>
-                    {% for enemy in map.enemies %}
-                        <li>{{ enemy }}</li>
-                    {% endfor %}
-                    </ul>
-                {% else %}
-                    <span>No enemies listed.</span>
-                {% endif %}
+                <!-- Player Level Dropdown -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card bg-secondary text-light mb-4">
+                            <div class="card-body">
+                                <h2 class="text-warning">Player Levels</h2>
+                                <select id="playerLevelSelect" class="form-select form-select-lg bg-secondary text-white">
+                                    {% for level_data in context.player_levels %}
+                                        <option value="{{ level_data.level }}">Level {{ level_data.level }} ({{ level_data.exp }} EXP)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Players Section -->
-                <p class="card-text"><strong>Players:</strong> {{ map.players or 'Not specified' }}</p>
+                <!-- Category Items (Helmets, Armored Rigs, etc.) -->
+                {% for category in ['helmets', 'armored_rigs', 'backpack', 'M4A1'] %}
+                    <div class="row my-3">
+                        <div class="col-12">
+                            <h2 class="text-warning">{{ category.capitalize() }}</h2>
+                        </div>
+                        <div class="horizontal-scroll"> <!-- Start horizontal scrolling for categories -->
+                            {% for item in context[category][:5] %}
+                                <div class="col-md-3 mb-4" style="flex: 0 0 auto;"> <!-- Apply flex style -->
+                                    <div class="card bg-secondary text-light h-100">
+                                        <img src="{{ item.inspectImageLink }}" class="card-img-top" alt="{{ item.shortName }}">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ item.shortName }}</h5>
+                                            <p class="card-text">Price: {{ item.basePrice | number_format }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div> <!-- End horizontal scrolling for categories -->
+                    </div>
+                {% endfor %}
+
+                <!-- Ammo Section -->
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="text-warning">Ammo</h2>
+                    </div>
+                    <div class="horizontal-scroll"> <!-- Start horizontal scrolling for Ammo -->
+                    {% for ammo in context.ammo %}
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4" style="flex: 0 0 auto;"> <!-- Apply flex style -->
+                            <div class="card bg-secondary text-light h-100">
+                                <img src="{{ ammo.item.inspectImageLink }}" class="card-img-top" alt="{{ ammo.item.shortName }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ ammo.item.shortName }}</h5>
+                                    <p class="card-text">
+                                        Caliber: {{ ammo.caliber }}<br>
+                                        Damage: {{ ammo.damage }}<br>
+                                        Armor Damage: {{ ammo.armorDamage }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div> <!-- End horizontal scrolling for Ammo -->
+                </div>
+
+                <!-- Maps Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h2 class="text-warning">Maps</h2>
+                        </div>
+                        <div class="horizontal-scroll"> <!-- Start horizontal scrolling for Maps -->
+                        {% for map in context.maps %}
+                            <div class="col-lg-4 col-md-6 mb-4" style="flex: 0 0 auto;"> <!-- Apply flex style -->
+                                <div class="card bg-secondary text-light">
+                                    {% if map.image_link %}
+                                        <img src="{{ map.image_link }}" class="card-img-top" alt="{{ map.name }}">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a href="{{ map.wiki }}" target="_blank">{{ map.name }}</a>
+                                        </h5>
+                                        <div class="description-container">
+                                        <p class="card-text">{{ map.description }}</p>
+                                        <a class="more-less btn btn-sm btn-primary">More</a>
+                                        </div>
+                                        <ul class="list-unstyled">
+                                            <li>
+                    <strong>Enemies:</strong>
+                    <div class="enemies-list">
+                        {% for enemy in map.enemies %}
+                            <span class="enemy">{{ enemy }}</span>
+                        {% endfor %}
+                    </div>
+                </li>
+                                            <li><strong>Raid Duration:</strong> {{ map.raidDuration }} minutes</li>
+                                            <li><strong>Players:</strong> {{ map.players }}</li>
+                                            <li>
+                                                <strong>Bosses:</strong>
+                                                <ul>
+                                                {% for boss in map.bosses %}
+                                                    <li>{{ boss.name }} (Spawn chance: {{ boss.spawnChance | round(2) }})</li>
+                                                {% endfor %}
+                                                </ul>
+                                            </li>
+                                            {% if map.accessKeys %}
+                                            <li>
+                                                <strong>Access Keys:</strong>
+                                                <ul>
+                                                {% for key in map.accessKeys %}
+                                                    <li><a href="{{ key.wikiLink }}" target="_blank">{{ key.shortName }}</a></li>
+                                                {% endfor %}
+                                                </ul>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        </div> <!-- End horizontal scrolling for Maps -->
+                    </div>
+
             </div>
-            </div>
-        </div>
-        {% endfor %}
         </div>
     </div>
-
-    <div class="container mt-4">
-        <!-- ... other content ... -->
-
-    <select id="playerLevelSelect" class="form-select">
-        {% for level_data in context.player_levels %}
-        <option value="{{ level_data.level }}">Level {{ level_data.level }} ({{ level_data.exp }} EXP)</option>
-        {% endfor %}
-    </select>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -127,6 +157,6 @@
             }
         };
     </script>
-
 </body>
+
 </html>

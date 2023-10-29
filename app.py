@@ -12,6 +12,16 @@ app.logger.setLevel(logging.DEBUG)
 # API endpoint
 API_URL = "https://api.tarkov.dev/graphql"
 
+# Define the custom filter
+@app.template_filter('number_format')
+def number_format(value, format='%0.2f'):
+    """Format a number with commas as thousands separators."""
+    try:
+        number = float(value)
+        return f"{number:,.2f}"
+    except (ValueError, TypeError):
+        return value  # or return an error or a default value
+
 def run_query(query):
     headers = {"Content-Type": "application/json"}
     response = requests.post(API_URL, headers=headers, json={'query': query})

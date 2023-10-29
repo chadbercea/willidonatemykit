@@ -1,0 +1,53 @@
+.card-description {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    cursor: pointer;
+}
+
+.horizontal-scroll {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.horizontal-scroll .card {
+  flex: 0 0 auto;
+}
+
+.card-text {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Show ellipsis after 2 lines */
+  -webkit-box-orient: vertical;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  white-space: normal; /* Change from nowrap to normal */
+  max-height: 4.4em; /* Assuming line height of 1.1em, adjust as necessary */
+}
+
+/* Optional: CSS for 'More/Less' link for better visibility and positioning */
+.more-less {
+  color: #ffffff; /* Bootstrap primary color, can change based on your theme */
+  cursor: pointer;
+}
+
+.list-unstyled {
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+
+.enemies-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.enemy {
+    background-color: #191919;
+    margin-right: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
