@@ -1,7 +1,7 @@
 # Define each query as a constant string
 QUERY_HELMETS = """
 query {
-  items(categoryNames: [Headwear], types: [armor], limit: 12) {
+  items(categoryNames: [Headwear], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -11,7 +11,7 @@ query {
 
 QUERY_PLATES = """
 query {
-  items(categoryNames: [ArmorVest], limit: 12) {
+  items(categoryNames: [Armor], limit: 12) {
     shortName
     basePrice
     inspectImageLink
