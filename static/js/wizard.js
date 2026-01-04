@@ -15,6 +15,9 @@ const selections = {
     ammo: null
 };
 
+// Track selected weapon's caliber for ammo filtering
+let selectedWeaponCaliber = null;
+
 // Category to step mapping
 const categoryToStep = {
     map: 0,
@@ -78,6 +81,120 @@ const verdictMessages = {
     ]
 };
 
+// Snarky map-specific roasts
+const mapRoasts = {
+    'Factory': "Factory with that kit? Bold strategy. Tagilla sends his regards.",
+    'Night Factory': "Night Factory? Can't get head-eyes'd if you can't see. Big brain.",
+    'Customs': "Customs? Hope you practiced your dorms speedrun. Reshala's boys are waiting.",
+    'Woods': "Woods? Bring a lunch. And maybe binoculars. And therapy for when Shturman one-taps you.",
+    'Shoreline': "Shoreline? 45 minutes of looting resort, 2 seconds of dying to Sanitar.",
+    'Interchange': "Interchange? Killa's gonna turn you into a loot piñata in ULTRA.",
+    'Reserve': "Reserve? Raiders, Glukhar, and extract campers. Pick your poison.",
+    'Lighthouse': "Lighthouse? The Rogues have already zeroed their .50 cals on your spawn.",
+    'Streets of Tarkov': "Streets? Your PC is already crying. Kaban and Kollontay are loading in.",
+    'The Lab': "Labs?! With THAT loadout? The Raiders are going to laugh before they dome you.",
+    'Ground Zero': "Ground Zero? Baby's first map. You might actually survive this one.",
+    'Ground Zero 21+': "Ground Zero 21+? Cultists at night, extract campers by day. Classic.",
+    'Terminal': "Terminal? Black Division and AF operators vs you. Good luck lmao.",
+    'The Labyrinth': "The Labyrinth? Shadow Tagilla is already sharpening his hammer.",
+    'default': "Interesting map choice. The scavs thank you for your donation."
+};
+
+// Snarky helmet roasts
+const helmetRoasts = {
+    'paca': "PACA? That's not armor, that's a strongly worded letter.",
+    'Altyn': "Altyn? Can't get head-eyes'd if your whole head is a tank. 200 IQ.",
+    'FAST MT': "FAST MT? Look at Mr. Moneybags over here.",
+    'Kiver': "Kiver-M? Retro. Respect the drip.",
+    'ZSh': "ZSh? The face shield fogs up faster than your raid ends.",
+    'UNTAR': "UNTAR helmet? Peacekeeping your way to the lobby.",
+    'Pumpkin': "Pumpkin helmet? Festive. The scavs will appreciate the holiday spirit.",
+    '6B47': "6B47 Ratnik? Standard issue, standard death.",
+    'default': "Interesting head protection choice. Your skull disagrees."
+};
+
+// Snarky armor roasts
+const armorRoasts = {
+    'PACA': "PACA? Might as well wear a t-shirt that says 'free loot'.",
+    '6B43': "6B43 Zabralo? You move like a refrigerator but at least you're protected.",
+    'Slick': "Slick plate carrier? Chef's kiss. Now don't prone in a bush.",
+    'Gzhel': "Gzhel-K? Solid choice. Until someone breathes on it and it zeroes.",
+    'Module-3M': "Module-3M? The official armor of 'I just started playing'.",
+    'Korund': "Korund-VM? Repairs like a dream, dies like a nightmare.",
+    'default': "That armor might stop a strongly worded insult. Maybe."
+};
+
+// Snarky weapon roasts
+const weaponRoasts = {
+    'M4A1': "M4A1? The official weapon of 'I watched a YouTube guide'.",
+    'AK-74': "AK-74? Reliable. Like your impending death.",
+    'AKM': "AKM? 7.62 go brrrr. Recoil also go brrrr.",
+    'AS VAL': "AS VAL? Sneaky boi loadout. Until you run out of 30-round mags.",
+    'MP5': "MP5? Ah yes, the 'I want to be close and personal with my killer' choice.",
+    'MP7': "MP7? Leg meta enjoyer detected.",
+    'VSS': "VSS Vintorez? 20-round mags of pure anxiety.",
+    'DVL': "DVL-10? Sniper gaming. Hope your aim is better than your kit.",
+    'RSASS': "RSASS? Semi-auto chad energy.",
+    'default': "Interesting weapon choice. The person who loots it will appreciate it."
+};
+
+// Snarky ammo roasts
+const ammoRoasts = {
+    'PS': "PS ammo? Might as well throw the bullets by hand.",
+    'BP': "BP? Budget penetration for budget players.",
+    'BS': "BS ammo? Now we're talking. Armor fears you.",
+    'M855': "M855? Green tip go ping off helmets.",
+    'M855A1': "M855A1? Solid. Your aim is still the problem though.",
+    'M995': "M995? Your wallet is crying but your enemies will too.",
+    'SNB': "SNB? One-tap potential. If you can aim.",
+    '7N40': "7N40? Basically cheating. Nikita pls nerf.",
+    'Pst': "Pst gzh? The sound of 'I'm going for legs'.",
+    'default': "That ammo choice is... a choice. Certainly a choice."
+};
+
+function generateSnarkyCommentary() {
+    const comments = [];
+
+    // Map roast
+    if (selections.map?.name) {
+        const mapName = selections.map.name;
+        const mapRoast = Object.keys(mapRoasts).find(key => mapName.includes(key));
+        comments.push(mapRoasts[mapRoast] || mapRoasts['default']);
+    }
+
+    // Helmet roast
+    if (selections.helmet?.name) {
+        const helmetName = selections.helmet.name;
+        const helmetRoast = Object.keys(helmetRoasts).find(key => helmetName.toLowerCase().includes(key.toLowerCase()));
+        if (helmetRoast) comments.push(helmetRoasts[helmetRoast]);
+    }
+
+    // Armor roast
+    if (selections.armor?.name) {
+        const armorName = selections.armor.name;
+        const armorRoast = Object.keys(armorRoasts).find(key => armorName.toLowerCase().includes(key.toLowerCase()));
+        if (armorRoast) comments.push(armorRoasts[armorRoast]);
+    }
+
+    // Weapon roast
+    if (selections.weapon?.name) {
+        const weaponName = selections.weapon.name;
+        const weaponRoast = Object.keys(weaponRoasts).find(key => weaponName.includes(key));
+        if (weaponRoast) comments.push(weaponRoasts[weaponRoast]);
+    }
+
+    // Ammo roast
+    if (selections.ammo?.name) {
+        const ammoName = selections.ammo.name;
+        const ammoRoast = Object.keys(ammoRoasts).find(key => ammoName.includes(key));
+        if (ammoRoast) comments.push(ammoRoasts[ammoRoast]);
+    }
+
+    // Pick 2-3 random roasts from what we have
+    const shuffled = comments.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(3, shuffled.length));
+}
+
 // ========================================
 // Initialization
 // ========================================
@@ -116,14 +233,64 @@ function selectCard(card) {
         name: card.dataset.name,
         value: parseFloat(card.dataset.value) || 0,
         damage: parseFloat(card.dataset.damage) || 0,
-        armorDamage: parseFloat(card.dataset.armorDamage) || 0
+        armorDamage: parseFloat(card.dataset.armorDamage) || 0,
+        caliber: card.dataset.caliber || null
     };
+
+    // If weapon selected, store caliber and filter ammo
+    if (category === 'weapon' && card.dataset.caliber) {
+        selectedWeaponCaliber = card.dataset.caliber;
+        filterAmmoByCaliber(selectedWeaponCaliber);
+    }
 
     // Update summary bar
     updateSummary(category, card.dataset.name);
 
     // Enable next button
     updateButtons();
+}
+
+function filterAmmoByCaliber(caliber) {
+    const ammoCards = document.querySelectorAll('.ammo-card');
+    let visibleCount = 0;
+
+    // Handle caliber compatibility (9x18PMM can use 9x18PM ammo)
+    const compatibleCalibers = [caliber];
+    if (caliber === 'Caliber9x18PMM') {
+        compatibleCalibers.push('Caliber9x18PM');
+    }
+
+    ammoCards.forEach(card => {
+        const ammoCaliber = card.dataset.caliber;
+        if (compatibleCalibers.includes(ammoCaliber)) {
+            card.style.display = '';
+            card.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+            card.classList.add('hidden');
+        }
+    });
+
+    // Update subtitle to show what caliber we're filtering for
+    const subtitle = document.getElementById('ammoSubtitle');
+    if (subtitle && caliber) {
+        const caliberName = caliber.replace('Caliber', '');
+        if (visibleCount === 0) {
+            subtitle.textContent = `No ammo found for ${caliberName}. That's rough, buddy.`;
+        } else {
+            subtitle.textContent = `Showing ${caliberName} ammo for your weapon (${visibleCount} options)`;
+        }
+    }
+
+    // Clear any previous ammo selection since caliber changed
+    selections.ammo = null;
+    const summaryAmmo = document.getElementById('summaryAmmo');
+    if (summaryAmmo) {
+        summaryAmmo.textContent = '--';
+        summaryAmmo.closest('.summary-item').classList.remove('filled');
+    }
+    ammoCards.forEach(c => c.classList.remove('selected'));
 }
 
 function updateSummary(category, value) {
@@ -330,7 +497,7 @@ function showVerdict(score) {
     const message = getVerdictMessage(score);
     document.getElementById('verdictMessage').textContent = message;
 
-    // Show breakdown
+    // Show breakdown with snarky commentary
     showBreakdown();
 }
 
@@ -367,30 +534,48 @@ function getVerdictMessage(score) {
 
 function showBreakdown() {
     const breakdown = document.getElementById('verdictBreakdown');
+
+    // Get snarky commentary based on selections
+    const roasts = generateSnarkyCommentary();
+
+    // Build roasts HTML
+    let roastsHtml = '';
+    if (roasts.length > 0) {
+        roastsHtml = `
+            <div class="roasts-container">
+                <h4 class="roasts-title"><i class="bi bi-chat-quote"></i> The Scav Boss Council Says:</h4>
+                ${roasts.map(roast => `<p class="roast-text">"${roast}"</p>`).join('')}
+            </div>
+        `;
+    }
+
     breakdown.innerHTML = `
-        <div class="breakdown-item">
-            <span class="breakdown-label">Map</span>
-            <span class="breakdown-value">${selections.map?.name || '--'}</span>
-        </div>
-        <div class="breakdown-item">
-            <span class="breakdown-label">Helmet</span>
-            <span class="breakdown-value">${selections.helmet?.name || '--'}</span>
-        </div>
-        <div class="breakdown-item">
-            <span class="breakdown-label">Armor</span>
-            <span class="breakdown-value">${selections.armor?.name || '--'}</span>
-        </div>
-        <div class="breakdown-item">
-            <span class="breakdown-label">Backpack</span>
-            <span class="breakdown-value">${selections.backpack?.name || '--'}</span>
-        </div>
-        <div class="breakdown-item">
-            <span class="breakdown-label">Weapon</span>
-            <span class="breakdown-value">${selections.weapon?.name || '--'}</span>
-        </div>
-        <div class="breakdown-item">
-            <span class="breakdown-label">Ammo</span>
-            <span class="breakdown-value">${selections.ammo?.name || '--'}</span>
+        ${roastsHtml}
+        <div class="breakdown-grid">
+            <div class="breakdown-item">
+                <span class="breakdown-label">Map</span>
+                <span class="breakdown-value">${selections.map?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Helmet</span>
+                <span class="breakdown-value">${selections.helmet?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Armor</span>
+                <span class="breakdown-value">${selections.armor?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Backpack</span>
+                <span class="breakdown-value">${selections.backpack?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Weapon</span>
+                <span class="breakdown-value">${selections.weapon?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Ammo</span>
+                <span class="breakdown-value">${selections.ammo?.name || '--'}</span>
+            </div>
         </div>
     `;
 }
@@ -405,15 +590,26 @@ function restartWizard() {
         selections[key] = null;
     });
 
+    // Reset caliber filter
+    selectedWeaponCaliber = null;
+
     // Reset UI
     document.querySelectorAll('.gear-card').forEach(card => {
         card.classList.remove('selected');
+        card.style.display = '';  // Show all cards again
+        card.classList.remove('hidden');
     });
 
     document.querySelectorAll('.summary-item').forEach(item => {
         item.classList.remove('filled');
         item.querySelector('.summary-value').textContent = '--';
     });
+
+    // Reset ammo subtitle
+    const ammoSubtitle = document.getElementById('ammoSubtitle');
+    if (ammoSubtitle) {
+        ammoSubtitle.textContent = 'PS ammo players, we see you.';
+    }
 
     // Reset score circle
     document.getElementById('scoreCircle').style.strokeDashoffset = 283;

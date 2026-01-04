@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 import requests
 import logging
-from const import QUERY_HELMETS, QUERY_PLATES, QUERY_BACKPACKS, QUERY_M4A1, QUERY_AMMO, QUERY_MAPS, QUERY_PLAYER_LEVELS
+from const import QUERY_HELMETS, QUERY_PLATES, QUERY_BACKPACKS, QUERY_WEAPONS, QUERY_AMMO, QUERY_MAPS, QUERY_PLAYER_LEVELS
 
 app = Flask(__name__)
 
@@ -46,15 +46,36 @@ def standardize_data(data):
             item_data[key] = value
         standardized.append(item_data)
     return standardized
-@app.route('/')
 
+def process_weapons(data):
+    """Extract caliber from nested preset properties"""
+    weapons = []
+    for item in data:
+        weapon = {
+            'shortName': item.get('shortName'),
+            'basePrice': item.get('basePrice'),
+            'inspectImageLink': item.get('inspectImageLink'),
+            'caliber': None
+        }
+        # Extract caliber from nested properties
+        props = item.get('properties', {})
+        if props:
+            base_item = props.get('baseItem', {})
+            if base_item:
+                base_props = base_item.get('properties', {})
+                if base_props:
+                    weapon['caliber'] = base_props.get('caliber')
+        weapons.append(weapon)
+    return weapons
+
+@app.route('/')
 def index():
     queries = {
         "helmets": QUERY_HELMETS,
         "armored_rigs": QUERY_PLATES,
         "backpack": QUERY_BACKPACKS,
-        "M4A1": QUERY_M4A1,
-        "ammo": QUERY_AMMO,  
+        "weapons": QUERY_WEAPONS,
+        "ammo": QUERY_AMMO,
         "maps": QUERY_MAPS,
         "player_levels": QUERY_PLAYER_LEVELS
     }
@@ -65,19 +86,24 @@ def index():
         if response:
             if key == "ammo":
                 raw_data = response.get('data', {}).get('ammo', [])
+                context[key] = standardize_data(raw_data)
             elif key == "maps":
                 raw_data = response.get('data', {}).get('maps', [])
                 context["successFlags"]["maps"] = bool(raw_data)
+                context[key] = standardize_data(raw_data)
             elif key == "player_levels":
-                # Refactored to correctly access 'playerLevels' from the response
                 raw_data = response.get('data', {}).get('playerLevels', [])
                 context["successFlags"]["player_levels"] = bool(raw_data)
+                context[key] = standardize_data(raw_data)
+            elif key == "weapons":
+                raw_data = response.get('data', {}).get('items', [])
+                context[key] = process_weapons(raw_data)
             else:
                 raw_data = response.get('data', {}).get('items', [])
-            context[key] = standardize_data(raw_data)
+                context[key] = standardize_data(raw_data)
         else:
             context[key] = []
-            context["successFlags"][key] = False  # Set success flag as False when no data is returned
+            context["successFlags"][key] = False
 
     app.logger.debug("Full Context Data: %s", context)
     return render_template("index.html", context=context)

@@ -155,8 +155,8 @@
                 <p class="step-subtitle">Pick your boom stick.</p>
             </div>
             <div class="cards-grid" id="weaponCards">
-                {% for item in context.M4A1 %}
-                <div class="gear-card" data-category="weapon" data-id="{{ loop.index }}" data-name="{{ item.shortName }}" data-value="{{ item.basePrice }}">
+                {% for item in context.weapons %}
+                <div class="gear-card" data-category="weapon" data-id="{{ loop.index }}" data-name="{{ item.shortName }}" data-value="{{ item.basePrice }}" data-caliber="{{ item.caliber }}">
                     <div class="card-image-container">
                         {% if item.inspectImageLink %}
                         <img src="{{ item.inspectImageLink }}" alt="{{ item.shortName }}">
@@ -169,6 +169,9 @@
                         <div class="card-price">
                             <i class="bi bi-currency-exchange"></i> {{ item.basePrice | number_format }} ₽
                         </div>
+                        {% if item.caliber %}
+                        <div class="card-caliber">{{ item.caliber | replace('Caliber', '') }}</div>
+                        {% endif %}
                     </div>
                     <div class="card-selected-indicator"><i class="bi bi-check-circle-fill"></i></div>
                 </div>
@@ -180,11 +183,11 @@
         <div class="wizard-step" data-step="5">
             <div class="step-header">
                 <h1 class="step-title">What's in the mag?</h1>
-                <p class="step-subtitle">PS ammo players, we see you.</p>
+                <p class="step-subtitle" id="ammoSubtitle">PS ammo players, we see you.</p>
             </div>
             <div class="cards-grid" id="ammoCards">
                 {% for ammo in context.ammo %}
-                <div class="gear-card" data-category="ammo" data-id="{{ loop.index }}" data-name="{{ ammo.item.shortName }}" data-value="{{ ammo.damage }}" data-damage="{{ ammo.damage }}" data-armor-damage="{{ ammo.armorDamage }}">
+                <div class="gear-card ammo-card" data-category="ammo" data-id="{{ loop.index }}" data-name="{{ ammo.item.shortName }}" data-value="{{ ammo.damage }}" data-damage="{{ ammo.damage }}" data-armor-damage="{{ ammo.armorDamage }}" data-caliber="{{ ammo.caliber }}">
                     <div class="card-image-container">
                         {% if ammo.item.inspectImageLink %}
                         <img src="{{ ammo.item.inspectImageLink }}" alt="{{ ammo.item.shortName }}">
@@ -198,7 +201,7 @@
                             <span class="stat"><i class="bi bi-lightning"></i> {{ ammo.damage }} DMG</span>
                             <span class="stat"><i class="bi bi-shield-slash"></i> {{ ammo.armorDamage }} PEN</span>
                         </div>
-                        <div class="card-caliber">{{ ammo.caliber }}</div>
+                        <div class="card-caliber">{{ ammo.caliber | replace('Caliber', '') }}</div>
                     </div>
                     <div class="card-selected-indicator"><i class="bi bi-check-circle-fill"></i></div>
                 </div>

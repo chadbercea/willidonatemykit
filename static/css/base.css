@@ -568,11 +568,55 @@ body {
 }
 
 .verdict-breakdown {
+    max-width: 700px;
+    margin: 0 auto 30px;
+}
+
+/* Snarky Roasts Section */
+.roasts-container {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(201, 162, 39, 0.1) 100%);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.roasts-title {
+    color: var(--accent-red);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.roasts-title i {
+    font-size: 1.1rem;
+}
+
+.roast-text {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+    padding-left: 15px;
+    border-left: 3px solid var(--accent-gold-dim);
+    font-style: italic;
+}
+
+.roast-text:last-child {
+    margin-bottom: 0;
+}
+
+/* Breakdown Grid */
+.breakdown-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 12px;
 }
 
 .breakdown-item {

@@ -1,7 +1,9 @@
 # Define each query as a constant string
+
+# Actual helmets only (not hats/beanies)
 QUERY_HELMETS = """
 query {
-  items(categoryNames: [Headwear], limit: 12) {
+  items(types: [helmet], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -9,6 +11,7 @@ query {
 }
 """
 
+# Body armor
 QUERY_PLATES = """
 query {
   items(categoryNames: [Armor], limit: 12) {
@@ -19,6 +22,7 @@ query {
 }
 """
 
+# Backpacks
 QUERY_BACKPACKS = """
 query {
   items(categoryNames: [Backpack], limit: 12) {
@@ -29,19 +33,33 @@ query {
 }
 """
 
-QUERY_M4A1 = """
+# Preset weapons (complete builds with caliber info)
+QUERY_WEAPONS = """
 query {
-  items(categoryNames: [AssaultRifle], limit: 12) {
+  items(types: [preset], categoryNames: [AssaultRifle, SMG, Shotgun, MarksmanRifle, SniperRifle], limit: 15) {
     shortName
     basePrice
     inspectImageLink
+    properties {
+      ... on ItemPropertiesPreset {
+        baseItem {
+          shortName
+          properties {
+            ... on ItemPropertiesWeapon {
+              caliber
+            }
+          }
+        }
+      }
+    }
   }
 }
 """
 
+# Ammo with caliber for filtering (high limit to get all calibers)
 QUERY_AMMO = """
 query {
-  ammo(limit: 15) {
+  ammo(limit: 200) {
     item {
       shortName
       basePrice
