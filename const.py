@@ -1,7 +1,7 @@
 # Define each query as a constant string
 QUERY_HELMETS = """
 query {
-  items(name: "Helmet", limit: 5) {
+  items(categoryNames: [Headwear], types: [armor], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -11,7 +11,7 @@ query {
 
 QUERY_PLATES = """
 query {
-  items(name: "Plate", limit: 5) {
+  items(categoryNames: [ArmorVest], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -21,7 +21,7 @@ query {
 
 QUERY_BACKPACKS = """
 query {
-  items(name: "backpack", limit: 5) {
+  items(categoryNames: [Backpack], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -31,7 +31,7 @@ query {
 
 QUERY_M4A1 = """
 query {
-  items(name: "M4A1", limit: 5) {
+  items(categoryNames: [AssaultRifle], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -41,7 +41,7 @@ query {
 
 QUERY_AMMO = """
 query {
-  ammo(limit: 5) {
+  ammo(limit: 15) {
     item {
       shortName
       basePrice
@@ -56,7 +56,7 @@ query {
 
 QUERY_MAPS = """
 query {
-  maps(limit: 5) {
+  maps {
     id
     name
     normalizedName
