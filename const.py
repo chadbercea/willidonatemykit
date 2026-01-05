@@ -103,3 +103,83 @@ query {
   }
 }
 """
+
+# Headphones/Ear Protection
+QUERY_HEADPHONES = """
+query {
+  items(categoryNames: [Headphones], limit: 8) {
+    shortName
+    basePrice
+    inspectImageLink
+  }
+}
+"""
+
+# Magazines with capacity
+QUERY_MAGAZINES = """
+query {
+  items(categoryNames: [Magazine], limit: 50) {
+    shortName
+    basePrice
+    inspectImageLink
+    properties {
+      ... on ItemPropertiesMagazine {
+        capacity
+        allowedAmmo {
+          shortName
+        }
+      }
+    }
+  }
+}
+"""
+
+# Food items
+QUERY_FOOD = """
+query {
+  items(categoryNames: [Food], limit: 8) {
+    shortName
+    basePrice
+    inspectImageLink
+    properties {
+      ... on ItemPropertiesFoodDrink {
+        energy
+        hydration
+      }
+    }
+  }
+}
+"""
+
+# Drink items
+QUERY_DRINKS = """
+query {
+  items(categoryNames: [Drink], limit: 8) {
+    shortName
+    basePrice
+    inspectImageLink
+    properties {
+      ... on ItemPropertiesFoodDrink {
+        energy
+        hydration
+      }
+    }
+  }
+}
+"""
+
+# Medical items (medkits)
+QUERY_MEDS = """
+query {
+  items(categoryNames: [Medikit], limit: 8) {
+    shortName
+    basePrice
+    inspectImageLink
+    properties {
+      ... on ItemPropertiesMedKit {
+        hitpoints
+      }
+    }
+  }
+}
+"""

@@ -1,7 +1,11 @@
 from flask import Flask, render_template, jsonify, request
 import requests
 import logging
-from const import QUERY_HELMETS, QUERY_PLATES, QUERY_BACKPACKS, QUERY_WEAPONS, QUERY_AMMO, QUERY_MAPS, QUERY_PLAYER_LEVELS
+from const import (
+    QUERY_HELMETS, QUERY_PLATES, QUERY_BACKPACKS, QUERY_WEAPONS, QUERY_AMMO,
+    QUERY_MAPS, QUERY_PLAYER_LEVELS, QUERY_HEADPHONES, QUERY_MAGAZINES,
+    QUERY_FOOD, QUERY_DRINKS, QUERY_MEDS
+)
 
 app = Flask(__name__)
 
@@ -68,6 +72,59 @@ def process_weapons(data):
         weapons.append(weapon)
     return weapons
 
+def process_magazines(data):
+    """Extract capacity and allowed ammo from magazine properties"""
+    magazines = []
+    for item in data:
+        mag = {
+            'shortName': item.get('shortName'),
+            'basePrice': item.get('basePrice'),
+            'inspectImageLink': item.get('inspectImageLink'),
+            'capacity': 0,
+            'allowedAmmo': []
+        }
+        props = item.get('properties', {})
+        if props:
+            mag['capacity'] = props.get('capacity', 0)
+            allowed = props.get('allowedAmmo', [])
+            mag['allowedAmmo'] = [a.get('shortName') for a in allowed if a.get('shortName')]
+        magazines.append(mag)
+    return magazines
+
+def process_food_drink(data):
+    """Extract energy and hydration from food/drink properties"""
+    items = []
+    for item in data:
+        fd = {
+            'shortName': item.get('shortName'),
+            'basePrice': item.get('basePrice'),
+            'inspectImageLink': item.get('inspectImageLink'),
+            'energy': 0,
+            'hydration': 0
+        }
+        props = item.get('properties', {})
+        if props:
+            fd['energy'] = props.get('energy', 0) or 0
+            fd['hydration'] = props.get('hydration', 0) or 0
+        items.append(fd)
+    return items
+
+def process_meds(data):
+    """Extract hitpoints from medkit properties"""
+    items = []
+    for item in data:
+        med = {
+            'shortName': item.get('shortName'),
+            'basePrice': item.get('basePrice'),
+            'inspectImageLink': item.get('inspectImageLink'),
+            'hitpoints': 0
+        }
+        props = item.get('properties', {})
+        if props:
+            med['hitpoints'] = props.get('hitpoints', 0) or 0
+        items.append(med)
+    return items
+
 @app.route('/')
 def index():
     queries = {
@@ -75,7 +132,12 @@ def index():
         "armored_rigs": QUERY_PLATES,
         "backpack": QUERY_BACKPACKS,
         "weapons": QUERY_WEAPONS,
+        "magazines": QUERY_MAGAZINES,
         "ammo": QUERY_AMMO,
+        "headphones": QUERY_HEADPHONES,
+        "food": QUERY_FOOD,
+        "drinks": QUERY_DRINKS,
+        "meds": QUERY_MEDS,
         "maps": QUERY_MAPS,
         "player_levels": QUERY_PLAYER_LEVELS
     }
@@ -98,6 +160,15 @@ def index():
             elif key == "weapons":
                 raw_data = response.get('data', {}).get('items', [])
                 context[key] = process_weapons(raw_data)
+            elif key == "magazines":
+                raw_data = response.get('data', {}).get('items', [])
+                context[key] = process_magazines(raw_data)
+            elif key in ["food", "drinks"]:
+                raw_data = response.get('data', {}).get('items', [])
+                context[key] = process_food_drink(raw_data)
+            elif key == "meds":
+                raw_data = response.get('data', {}).get('items', [])
+                context[key] = process_meds(raw_data)
             else:
                 raw_data = response.get('data', {}).get('items', [])
                 context[key] = standardize_data(raw_data)
@@ -138,4 +209,4 @@ def calculate_score():
         return jsonify(score=0)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

@@ -4,28 +4,39 @@
 
 // State
 let currentStep = 0;
-const totalSteps = 7; // 0-6 (Map, Helmet, Armor, Backpack, Weapon, Ammo, Verdict)
+const totalSteps = 12; // 0-11 (Map, Helmet, EarPro, Armor, Backpack, Weapon, Magazine, Ammo, Food, Water, Meds, Verdict)
 
 const selections = {
     map: null,
     helmet: null,
+    headphones: null,
     armor: null,
     backpack: null,
     weapon: null,
-    ammo: null
+    magazine: null,
+    ammo: null,
+    food: null,
+    drink: null,
+    meds: null
 };
 
 // Track selected weapon's caliber for ammo filtering
 let selectedWeaponCaliber = null;
+let selectedWeaponName = null;
 
 // Category to step mapping
 const categoryToStep = {
     map: 0,
     helmet: 1,
-    armor: 2,
-    backpack: 3,
-    weapon: 4,
-    ammo: 5
+    headphones: 2,
+    armor: 3,
+    backpack: 4,
+    weapon: 5,
+    magazine: 6,
+    ammo: 7,
+    food: 8,
+    drink: 9,
+    meds: 10
 };
 
 // Funny loading messages
@@ -88,7 +99,7 @@ const mapRoasts = {
     'Customs': "Customs? Hope you practiced your dorms speedrun. Reshala's boys are waiting.",
     'Woods': "Woods? Bring a lunch. And maybe binoculars. And therapy for when Shturman one-taps you.",
     'Shoreline': "Shoreline? 45 minutes of looting resort, 2 seconds of dying to Sanitar.",
-    'Interchange': "Interchange? Killa's gonna turn you into a loot piñata in ULTRA.",
+    'Interchange': "Interchange? Killa's gonna turn you into a loot pinata in ULTRA.",
     'Reserve': "Reserve? Raiders, Glukhar, and extract campers. Pick your poison.",
     'Lighthouse': "Lighthouse? The Rogues have already zeroed their .50 cals on your spawn.",
     'Streets of Tarkov': "Streets? Your PC is already crying. Kaban and Kollontay are loading in.",
@@ -152,6 +163,26 @@ const ammoRoasts = {
     'default': "That ammo choice is... a choice. Certainly a choice."
 };
 
+// Snarky headphone roasts
+const headphoneRoasts = {
+    'ComTac': "ComTacs? Hear them before they head-eyes you.",
+    'GSSH': "GSSH? The official headset of 'I'm broke but aware'.",
+    'Sordin': "Sordins? Fancy ears won't save you from bad aim.",
+    'XCEL': "XCEL? Premium hearing for premium dying.",
+    'RAC': "RAC headset? Tacticool to the max.",
+    'default': "Those ears better help you hear the bullet that kills you."
+};
+
+// Snarky food/drink roasts
+const consumableRoasts = {
+    'MRE': "MRE? At least you'll die with a full stomach.",
+    'Slickers': "Slickers bar? Nothing like chocolate before combat.",
+    'Aquamari': "Aquamari? Hydrated corpse incoming.",
+    'Water': "Water bottle? Stay hydrated, stay dead.",
+    'Moonshine': "Moonshine? Dutch courage won't save you.",
+    'default': "Gotta eat. Shame it won't matter in 30 seconds."
+};
+
 function generateSnarkyCommentary() {
     const comments = [];
 
@@ -167,6 +198,13 @@ function generateSnarkyCommentary() {
         const helmetName = selections.helmet.name;
         const helmetRoast = Object.keys(helmetRoasts).find(key => helmetName.toLowerCase().includes(key.toLowerCase()));
         if (helmetRoast) comments.push(helmetRoasts[helmetRoast]);
+    }
+
+    // Headphones roast
+    if (selections.headphones?.name) {
+        const hpName = selections.headphones.name;
+        const hpRoast = Object.keys(headphoneRoasts).find(key => hpName.toLowerCase().includes(key.toLowerCase()));
+        if (hpRoast) comments.push(headphoneRoasts[hpRoast]);
     }
 
     // Armor roast
@@ -190,6 +228,13 @@ function generateSnarkyCommentary() {
         if (ammoRoast) comments.push(ammoRoasts[ammoRoast]);
     }
 
+    // Food/Drink roast
+    if (selections.food?.name || selections.drink?.name) {
+        const consumableName = selections.food?.name || selections.drink?.name;
+        const consumableRoast = Object.keys(consumableRoasts).find(key => consumableName?.toLowerCase().includes(key.toLowerCase()));
+        if (consumableRoast) comments.push(consumableRoasts[consumableRoast]);
+    }
+
     // Pick 2-3 random roasts from what we have
     const shuffled = comments.sort(() => 0.5 - Math.random());
     return shuffled.slice(0, Math.min(3, shuffled.length));
@@ -203,6 +248,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initCardSelection();
     updateProgress();
     updateButtons();
+    updateSidebar();
+    updateDrawerCount();
 });
 
 // ========================================
@@ -234,17 +281,25 @@ function selectCard(card) {
         value: parseFloat(card.dataset.value) || 0,
         damage: parseFloat(card.dataset.damage) || 0,
         armorDamage: parseFloat(card.dataset.armorDamage) || 0,
-        caliber: card.dataset.caliber || null
+        caliber: card.dataset.caliber || null,
+        image: card.dataset.image || null,
+        capacity: parseInt(card.dataset.capacity) || 0,
+        energy: parseInt(card.dataset.energy) || 0,
+        hydration: parseInt(card.dataset.hydration) || 0,
+        hitpoints: parseInt(card.dataset.hitpoints) || 0
     };
 
     // If weapon selected, store caliber and filter ammo
     if (category === 'weapon' && card.dataset.caliber) {
         selectedWeaponCaliber = card.dataset.caliber;
+        selectedWeaponName = card.dataset.name;
         filterAmmoByCaliber(selectedWeaponCaliber);
+        filterMagazinesByWeapon(card.dataset.name);
     }
 
-    // Update summary bar
-    updateSummary(category, card.dataset.name);
+    // Update sidebar
+    updateSidebar();
+    updateDrawerCount();
 
     // Enable next button
     updateButtons();
@@ -285,19 +340,93 @@ function filterAmmoByCaliber(caliber) {
 
     // Clear any previous ammo selection since caliber changed
     selections.ammo = null;
-    const summaryAmmo = document.getElementById('summaryAmmo');
-    if (summaryAmmo) {
-        summaryAmmo.textContent = '--';
-        summaryAmmo.closest('.summary-item').classList.remove('filled');
-    }
     ammoCards.forEach(c => c.classList.remove('selected'));
 }
 
-function updateSummary(category, value) {
-    const summaryEl = document.getElementById(`summary${capitalize(category)}`);
-    if (summaryEl) {
-        summaryEl.textContent = truncate(value, 12);
-        summaryEl.closest('.summary-item').classList.add('filled');
+function filterMagazinesByWeapon(weaponName) {
+    const magCards = document.querySelectorAll('.magazine-card');
+    let visibleCount = 0;
+
+    // Get magazines data from window object (set in HTML)
+    const magazines = window.magazines || [];
+
+    magCards.forEach(card => {
+        const magName = card.dataset.name;
+        // Find this magazine in our data
+        const magData = magazines.find(m => m.shortName === magName);
+
+        // For now, show all magazines - proper filtering would need weapon-magazine compatibility data
+        // which isn't directly available in the API
+        card.style.display = '';
+        card.classList.remove('hidden');
+        visibleCount++;
+    });
+
+    // Update subtitle
+    const subtitle = document.getElementById('magSubtitle');
+    if (subtitle) {
+        subtitle.textContent = `Select a magazine for your loadout (${visibleCount} options)`;
+    }
+
+    // Clear previous magazine selection
+    selections.magazine = null;
+    magCards.forEach(c => c.classList.remove('selected'));
+}
+
+function updateSidebar() {
+    // Update each loadout slot in the sidebar
+    const slotMappings = {
+        'map': 'slotMap',
+        'helmet': 'slotHelmet',
+        'headphones': 'slotEarPro',
+        'armor': 'slotArmor',
+        'backpack': 'slotBackpack',
+        'weapon': 'slotWeapon',
+        'magazine': 'slotMagazine',
+        'ammo': 'slotAmmo',
+        'food': 'slotFood',
+        'drink': 'slotDrink',
+        'meds': 'slotMeds'
+    };
+
+    Object.keys(slotMappings).forEach(category => {
+        const slot = document.getElementById(slotMappings[category]);
+        if (!slot) return;
+
+        const selection = selections[category];
+        const valueEl = slot.querySelector('.slot-value');
+        const iconEl = slot.querySelector('.slot-icon');
+
+        if (selection) {
+            slot.classList.add('filled');
+            if (valueEl) {
+                valueEl.textContent = truncate(selection.name, 15);
+            }
+            // Update icon to show image if available
+            if (iconEl && selection.image) {
+                iconEl.innerHTML = `<img src="${selection.image}" alt="${selection.name}" class="slot-image">`;
+            }
+        } else {
+            slot.classList.remove('filled');
+            if (valueEl) {
+                valueEl.textContent = 'Empty';
+            }
+        }
+    });
+}
+
+function updateDrawerCount() {
+    const countEl = document.getElementById('drawerCount');
+    if (countEl) {
+        const filledCount = Object.values(selections).filter(s => s !== null).length;
+        countEl.textContent = filledCount;
+    }
+}
+
+function toggleDrawer() {
+    const sidebar = document.querySelector('.loadout-sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('open');
     }
 }
 
@@ -309,7 +438,7 @@ function nextStep() {
     const currentCategory = Object.keys(categoryToStep).find(key => categoryToStep[key] === currentStep);
 
     // Validate selection for current step (except verdict step)
-    if (currentStep < 6 && !selections[currentCategory]) {
+    if (currentStep < 11 && !selections[currentCategory]) {
         shakeButton();
         return;
     }
@@ -343,14 +472,22 @@ function showStep(step) {
         targetStep.classList.add('active');
     }
 
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to top of main content
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 function updateProgress() {
     // Update progress bar width
     const progress = (currentStep / (totalSteps - 1)) * 100;
-    document.getElementById('progressBar').style.width = `${progress}%`;
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = `${progress}%`;
+    }
 
     // Update step indicators
     document.querySelectorAll('.progress-steps .step').forEach((step, index) => {
@@ -368,6 +505,8 @@ function updateButtons() {
     const btnNext = document.getElementById('btnNext');
     const btnVerdict = document.getElementById('btnVerdict');
 
+    if (!btnBack || !btnNext || !btnVerdict) return;
+
     // Back button
     btnBack.disabled = currentStep === 0;
 
@@ -375,12 +514,12 @@ function updateButtons() {
     const currentCategory = Object.keys(categoryToStep).find(key => categoryToStep[key] === currentStep);
     const hasSelection = currentCategory ? selections[currentCategory] !== null : false;
 
-    // Show verdict button on last selection step (ammo = step 5)
-    if (currentStep === 5) {
+    // Show verdict button on last selection step (meds = step 10)
+    if (currentStep === 10) {
         btnNext.style.display = 'none';
         btnVerdict.style.display = 'flex';
         btnVerdict.disabled = !hasSelection;
-    } else if (currentStep === 6) {
+    } else if (currentStep === 11) {
         // On verdict screen, hide both
         btnNext.style.display = 'none';
         btnVerdict.style.display = 'none';
@@ -393,8 +532,10 @@ function updateButtons() {
 
 function shakeButton() {
     const btn = document.getElementById('btnNext');
-    btn.classList.add('shake');
-    setTimeout(() => btn.classList.remove('shake'), 500);
+    if (btn) {
+        btn.classList.add('shake');
+        setTimeout(() => btn.classList.remove('shake'), 500);
+    }
 }
 
 // ========================================
@@ -403,20 +544,26 @@ function shakeButton() {
 
 function calculateVerdict() {
     // Go to verdict step
-    currentStep = 6;
+    currentStep = 11;
     showStep(currentStep);
     updateProgress();
     updateButtons();
 
     // Show loading
-    document.getElementById('verdictLoading').style.display = 'flex';
-    document.getElementById('verdictResult').style.display = 'none';
+    const loadingEl = document.getElementById('verdictLoading');
+    const resultEl = document.getElementById('verdictResult');
+
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (resultEl) resultEl.style.display = 'none';
 
     // Cycle through loading messages
     let msgIndex = 0;
+    const loadingTextEl = document.getElementById('loadingText');
     const loadingInterval = setInterval(() => {
         msgIndex = (msgIndex + 1) % loadingMessages.length;
-        document.getElementById('loadingText').textContent = loadingMessages[msgIndex];
+        if (loadingTextEl) {
+            loadingTextEl.textContent = loadingMessages[msgIndex];
+        }
     }, 800);
 
     // Calculate score (simulate delay for effect)
@@ -437,18 +584,28 @@ function calculateScore() {
     const armorValue = selections.armor?.value || 0;
     const backpackValue = selections.backpack?.value || 0;
     const weaponValue = selections.weapon?.value || 0;
-    const totalGearValue = helmetValue + armorValue + backpackValue + weaponValue;
+    const headphonesValue = selections.headphones?.value || 0;
+    const magazineValue = selections.magazine?.value || 0;
+    const totalGearValue = helmetValue + armorValue + backpackValue + weaponValue + headphonesValue + magazineValue;
 
     // Get ammo stats
     const ammoDamage = selections.ammo?.damage || 0;
     const armorDamage = selections.ammo?.armorDamage || 0;
 
+    // Get consumable bonuses
+    const foodEnergy = selections.food?.energy || 0;
+    const drinkHydration = selections.drink?.hydration || 0;
+    const medsHitpoints = selections.meds?.hitpoints || 0;
+
     // Get map difficulty (using raid duration as proxy)
     const mapDifficulty = selections.map?.value || 30;
 
+    // Magazine capacity bonus
+    const magCapacity = selections.magazine?.capacity || 30;
+
     // Normalize scores (0-100)
-    // Gear: Max reasonable value ~500,000 rubles
-    const gearScore = Math.min((totalGearValue / 500000) * 100, 100);
+    // Gear: Max reasonable value ~600,000 rubles (with new items)
+    const gearScore = Math.min((totalGearValue / 600000) * 100, 100);
 
     // Ammo: Damage typically 40-90, armor damage 20-60
     const ammoScore = Math.min(((ammoDamage / 90) * 50 + (armorDamage / 60) * 50), 100);
@@ -456,11 +613,19 @@ function calculateScore() {
     // Map: Longer raids = harder (invert so short = easier)
     const mapScore = Math.max(100 - (mapDifficulty / 50) * 30, 40);
 
+    // Consumables bonus (energy + hydration + healing = survival bonus)
+    const consumableScore = Math.min(((foodEnergy / 100) * 30 + (drinkHydration / 100) * 30 + (medsHitpoints / 400) * 40), 100);
+
+    // Magazine capacity bonus (bigger mag = more dakka)
+    const magScore = Math.min((magCapacity / 60) * 100, 100);
+
     // Weighted final score
     const finalScore = Math.round(
-        gearScore * 0.35 +      // Gear value matters most
-        ammoScore * 0.35 +      // Ammo quality equally important
-        mapScore * 0.15 +       // Map difficulty
+        gearScore * 0.30 +      // Gear value
+        ammoScore * 0.25 +      // Ammo quality
+        mapScore * 0.10 +       // Map difficulty
+        consumableScore * 0.10 + // Consumables
+        magScore * 0.10 +       // Magazine capacity
         Math.random() * 15      // RNG because it's Tarkov
     );
 
@@ -468,34 +633,42 @@ function calculateScore() {
 }
 
 function showVerdict(score) {
-    document.getElementById('verdictLoading').style.display = 'none';
-    document.getElementById('verdictResult').style.display = 'block';
+    const loadingEl = document.getElementById('verdictLoading');
+    const resultEl = document.getElementById('verdictResult');
+
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (resultEl) resultEl.style.display = 'block';
 
     // Animate score number
     animateScore(score);
 
     // Set score ring color and fill
     const scoreCircle = document.getElementById('scoreCircle');
-    scoreCircle.classList.remove('low', 'medium', 'high');
+    if (scoreCircle) {
+        scoreCircle.classList.remove('low', 'medium', 'high');
 
-    if (score < 30) {
-        scoreCircle.classList.add('low');
-    } else if (score < 70) {
-        scoreCircle.classList.add('medium');
-    } else {
-        scoreCircle.classList.add('high');
+        if (score < 30) {
+            scoreCircle.classList.add('low');
+        } else if (score < 70) {
+            scoreCircle.classList.add('medium');
+        } else {
+            scoreCircle.classList.add('high');
+        }
+
+        // Animate ring fill (circumference = 2 * PI * 45 = 283)
+        const circumference = 283;
+        const offset = circumference - (score / 100) * circumference;
+        setTimeout(() => {
+            scoreCircle.style.strokeDashoffset = offset;
+        }, 100);
     }
-
-    // Animate ring fill (circumference = 2 * PI * 45 = 283)
-    const circumference = 283;
-    const offset = circumference - (score / 100) * circumference;
-    setTimeout(() => {
-        scoreCircle.style.strokeDashoffset = offset;
-    }, 100);
 
     // Set verdict message
     const message = getVerdictMessage(score);
-    document.getElementById('verdictMessage').textContent = message;
+    const messageEl = document.getElementById('verdictMessage');
+    if (messageEl) {
+        messageEl.textContent = message;
+    }
 
     // Show breakdown with snarky commentary
     showBreakdown();
@@ -503,6 +676,8 @@ function showVerdict(score) {
 
 function animateScore(targetScore) {
     const scoreEl = document.getElementById('scoreNumber');
+    if (!scoreEl) return;
+
     let current = 0;
     const duration = 1500;
     const increment = targetScore / (duration / 16);
@@ -534,6 +709,7 @@ function getVerdictMessage(score) {
 
 function showBreakdown() {
     const breakdown = document.getElementById('verdictBreakdown');
+    if (!breakdown) return;
 
     // Get snarky commentary based on selections
     const roasts = generateSnarkyCommentary();
@@ -561,6 +737,10 @@ function showBreakdown() {
                 <span class="breakdown-value">${selections.helmet?.name || '--'}</span>
             </div>
             <div class="breakdown-item">
+                <span class="breakdown-label">Ear Pro</span>
+                <span class="breakdown-value">${selections.headphones?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
                 <span class="breakdown-label">Armor</span>
                 <span class="breakdown-value">${selections.armor?.name || '--'}</span>
             </div>
@@ -573,8 +753,24 @@ function showBreakdown() {
                 <span class="breakdown-value">${selections.weapon?.name || '--'}</span>
             </div>
             <div class="breakdown-item">
+                <span class="breakdown-label">Magazine</span>
+                <span class="breakdown-value">${selections.magazine?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
                 <span class="breakdown-label">Ammo</span>
                 <span class="breakdown-value">${selections.ammo?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Food</span>
+                <span class="breakdown-value">${selections.food?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Drink</span>
+                <span class="breakdown-value">${selections.drink?.name || '--'}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Meds</span>
+                <span class="breakdown-value">${selections.meds?.name || '--'}</span>
             </div>
         </div>
     `;
@@ -592,6 +788,7 @@ function restartWizard() {
 
     // Reset caliber filter
     selectedWeaponCaliber = null;
+    selectedWeaponName = null;
 
     // Reset UI
     document.querySelectorAll('.gear-card').forEach(card => {
@@ -600,20 +797,38 @@ function restartWizard() {
         card.classList.remove('hidden');
     });
 
-    document.querySelectorAll('.summary-item').forEach(item => {
-        item.classList.remove('filled');
-        item.querySelector('.summary-value').textContent = '--';
-    });
-
     // Reset ammo subtitle
     const ammoSubtitle = document.getElementById('ammoSubtitle');
     if (ammoSubtitle) {
         ammoSubtitle.textContent = 'PS ammo players, we see you.';
     }
 
+    // Reset magazine subtitle
+    const magSubtitle = document.getElementById('magSubtitle');
+    if (magSubtitle) {
+        magSubtitle.textContent = 'Choose your mag capacity.';
+    }
+
     // Reset score circle
-    document.getElementById('scoreCircle').style.strokeDashoffset = 283;
-    document.getElementById('scoreNumber').textContent = '0';
+    const scoreCircle = document.getElementById('scoreCircle');
+    if (scoreCircle) {
+        scoreCircle.style.strokeDashoffset = 283;
+    }
+
+    const scoreNumber = document.getElementById('scoreNumber');
+    if (scoreNumber) {
+        scoreNumber.textContent = '0';
+    }
+
+    // Reset sidebar
+    updateSidebar();
+    updateDrawerCount();
+
+    // Close drawer on mobile
+    const sidebar = document.querySelector('.loadout-sidebar');
+    if (sidebar) {
+        sidebar.classList.remove('open');
+    }
 
     // Go to first step
     currentStep = 0;
