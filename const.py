@@ -1,7 +1,9 @@
 # Define each query as a constant string
+
+# Actual helmets only (not hats/beanies)
 QUERY_HELMETS = """
 query {
-  items(name: "Helmet", limit: 5) {
+  items(types: [helmet], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -9,9 +11,10 @@ query {
 }
 """
 
+# Body armor
 QUERY_PLATES = """
 query {
-  items(name: "Plate", limit: 5) {
+  items(categoryNames: [Armor], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -19,9 +22,10 @@ query {
 }
 """
 
+# Backpacks
 QUERY_BACKPACKS = """
 query {
-  items(name: "backpack", limit: 5) {
+  items(categoryNames: [Backpack], limit: 12) {
     shortName
     basePrice
     inspectImageLink
@@ -29,19 +33,33 @@ query {
 }
 """
 
-QUERY_M4A1 = """
+# Preset weapons (complete builds with caliber info)
+QUERY_WEAPONS = """
 query {
-  items(name: "M4A1", limit: 5) {
+  items(types: [preset], categoryNames: [AssaultRifle, SMG, Shotgun, MarksmanRifle, SniperRifle], limit: 15) {
     shortName
     basePrice
     inspectImageLink
+    properties {
+      ... on ItemPropertiesPreset {
+        baseItem {
+          shortName
+          properties {
+            ... on ItemPropertiesWeapon {
+              caliber
+            }
+          }
+        }
+      }
+    }
   }
 }
 """
 
+# Ammo with caliber for filtering (high limit to get all calibers)
 QUERY_AMMO = """
 query {
-  ammo(limit: 5) {
+  ammo(limit: 200) {
     item {
       shortName
       basePrice
@@ -56,7 +74,7 @@ query {
 
 QUERY_MAPS = """
 query {
-  maps(limit: 5) {
+  maps {
     id
     name
     normalizedName
@@ -82,6 +100,86 @@ query {
   playerLevels {
     level
     exp
+  }
+}
+"""
+
+# Headphones/Ear Protection
+QUERY_HEADPHONES = """
+query {
+  items(categoryNames: [Headphones], limit: 8) {
+    shortName
+    basePrice
+    inspectImageLink
+  }
+}
+"""
+
+# Magazines with capacity
+QUERY_MAGAZINES = """
+query {
+  items(categoryNames: [Magazine], limit: 50) {
+    shortName
+    basePrice
+    inspectImageLink
+    properties {
+      ... on ItemPropertiesMagazine {
+        capacity
+        allowedAmmo {
+          shortName
+        }
+      }
+    }
+  }
+}
+"""
+
+# Food items
+QUERY_FOOD = """
+query {
+  items(categoryNames: [Food], limit: 8) {
+    shortName
+    basePrice
+    inspectImageLink
+    properties {
+      ... on ItemPropertiesFoodDrink {
+        energy
+        hydration
+      }
+    }
+  }
+}
+"""
+
+# Drink items
+QUERY_DRINKS = """
+query {
+  items(categoryNames: [Drink], limit: 8) {
+    shortName
+    basePrice
+    inspectImageLink
+    properties {
+      ... on ItemPropertiesFoodDrink {
+        energy
+        hydration
+      }
+    }
+  }
+}
+"""
+
+# Medical items (medkits)
+QUERY_MEDS = """
+query {
+  items(categoryNames: [Medikit], limit: 8) {
+    shortName
+    basePrice
+    inspectImageLink
+    properties {
+      ... on ItemPropertiesMedKit {
+        hitpoints
+      }
+    }
   }
 }
 """

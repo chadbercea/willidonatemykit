@@ -1,7 +1,11 @@
 from flask import Flask, render_template, jsonify, request
 import requests
 import logging
-from const import QUERY_HELMETS, QUERY_PLATES, QUERY_BACKPACKS, QUERY_M4A1, QUERY_AMMO, QUERY_MAPS, QUERY_PLAYER_LEVELS
+from const import (
+    QUERY_HELMETS, QUERY_PLATES, QUERY_BACKPACKS, QUERY_WEAPONS, QUERY_AMMO,
+    QUERY_MAPS, QUERY_PLAYER_LEVELS, QUERY_HEADPHONES, QUERY_MAGAZINES,
+    QUERY_FOOD, QUERY_DRINKS, QUERY_MEDS
+)
 
 app = Flask(__name__)
 
@@ -46,15 +50,94 @@ def standardize_data(data):
             item_data[key] = value
         standardized.append(item_data)
     return standardized
-@app.route('/')
 
+def process_weapons(data):
+    """Extract caliber from nested preset properties"""
+    weapons = []
+    for item in data:
+        weapon = {
+            'shortName': item.get('shortName'),
+            'basePrice': item.get('basePrice'),
+            'inspectImageLink': item.get('inspectImageLink'),
+            'caliber': None
+        }
+        # Extract caliber from nested properties
+        props = item.get('properties', {})
+        if props:
+            base_item = props.get('baseItem', {})
+            if base_item:
+                base_props = base_item.get('properties', {})
+                if base_props:
+                    weapon['caliber'] = base_props.get('caliber')
+        weapons.append(weapon)
+    return weapons
+
+def process_magazines(data):
+    """Extract capacity and allowed ammo from magazine properties"""
+    magazines = []
+    for item in data:
+        mag = {
+            'shortName': item.get('shortName'),
+            'basePrice': item.get('basePrice'),
+            'inspectImageLink': item.get('inspectImageLink'),
+            'capacity': 0,
+            'allowedAmmo': []
+        }
+        props = item.get('properties', {})
+        if props:
+            mag['capacity'] = props.get('capacity', 0)
+            allowed = props.get('allowedAmmo', [])
+            mag['allowedAmmo'] = [a.get('shortName') for a in allowed if a.get('shortName')]
+        magazines.append(mag)
+    return magazines
+
+def process_food_drink(data):
+    """Extract energy and hydration from food/drink properties"""
+    items = []
+    for item in data:
+        fd = {
+            'shortName': item.get('shortName'),
+            'basePrice': item.get('basePrice'),
+            'inspectImageLink': item.get('inspectImageLink'),
+            'energy': 0,
+            'hydration': 0
+        }
+        props = item.get('properties', {})
+        if props:
+            fd['energy'] = props.get('energy', 0) or 0
+            fd['hydration'] = props.get('hydration', 0) or 0
+        items.append(fd)
+    return items
+
+def process_meds(data):
+    """Extract hitpoints from medkit properties"""
+    items = []
+    for item in data:
+        med = {
+            'shortName': item.get('shortName'),
+            'basePrice': item.get('basePrice'),
+            'inspectImageLink': item.get('inspectImageLink'),
+            'hitpoints': 0
+        }
+        props = item.get('properties', {})
+        if props:
+            med['hitpoints'] = props.get('hitpoints', 0) or 0
+        items.append(med)
+    return items
+
+@app.route('/')
 def index():
     queries = {
         "helmets": QUERY_HELMETS,
         "armored_rigs": QUERY_PLATES,
         "backpack": QUERY_BACKPACKS,
-        "M4A1": QUERY_M4A1,
-        "ammo": QUERY_AMMO,  
+        "weapons": QUERY_WEAPONS,
+        "magazines": QUERY_MAGAZINES,
+        "ammo": QUERY_AMMO,
+        "headphones": QUERY_HEADPHONES,
+        "food": QUERY_FOOD,
+        "drinks": QUERY_DRINKS,
+        "meds": QUERY_MEDS,
         "maps": QUERY_MAPS,
         "player_levels": QUERY_PLAYER_LEVELS
     }
@@ -65,19 +148,33 @@ def index():
         if response:
             if key == "ammo":
                 raw_data = response.get('data', {}).get('ammo', [])
+                context[key] = standardize_data(raw_data)
             elif key == "maps":
                 raw_data = response.get('data', {}).get('maps', [])
                 context["successFlags"]["maps"] = bool(raw_data)
+                context[key] = standardize_data(raw_data)
             elif key == "player_levels":
-                # Refactored to correctly access 'playerLevels' from the response
                 raw_data = response.get('data', {}).get('playerLevels', [])
                 context["successFlags"]["player_levels"] = bool(raw_data)
+                context[key] = standardize_data(raw_data)
+            elif key == "weapons":
+                raw_data = response.get('data', {}).get('items', [])
+                context[key] = process_weapons(raw_data)
+            elif key == "magazines":
+                raw_data = response.get('data', {}).get('items', [])
+                context[key] = process_magazines(raw_data)
+            elif key in ["food", "drinks"]:
+                raw_data = response.get('data', {}).get('items', [])
+                context[key] = process_food_drink(raw_data)
+            elif key == "meds":
+                raw_data = response.get('data', {}).get('items', [])
+                context[key] = process_meds(raw_data)
             else:
                 raw_data = response.get('data', {}).get('items', [])
-            context[key] = standardize_data(raw_data)
+                context[key] = standardize_data(raw_data)
         else:
             context[key] = []
-            context["successFlags"][key] = False  # Set success flag as False when no data is returned
+            context["successFlags"][key] = False
 
     app.logger.debug("Full Context Data: %s", context)
     return render_template("index.html", context=context)
@@ -112,4 +209,4 @@ def calculate_score():
         return jsonify(score=0)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
